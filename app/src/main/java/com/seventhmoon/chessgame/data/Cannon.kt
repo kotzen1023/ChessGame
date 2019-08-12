@@ -1,8 +1,7 @@
 package com.seventhmoon.chessgame.data
 
-class Soldier: Chess() {
-
+class Cannon : Chess() {
     init {
-        level = 1
+        level = 2
     }
 }

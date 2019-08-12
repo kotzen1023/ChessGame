@@ -6,8 +6,11 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import androidx.fragment.app.Fragment
 import com.seventhmoon.chessgame.R
+import com.seventhmoon.chessgame.data.Board
+import kotlin.random.Random
 
 class FragmentGamePad : Fragment() {
     private val mTAG = FragmentGamePad::class.java.name
@@ -30,6 +33,16 @@ class FragmentGamePad : Fragment() {
         Log.d(mTAG, "onCreateView")
 
         val view = inflater.inflate(R.layout.fragment_gamepad, container, false)
+
+        val board = Board(8, 4) // init board
+
+        for (i in 0 until 8) {
+            for (j in 0 until 4) {
+
+                
+            }
+
+        }
 
 
 
