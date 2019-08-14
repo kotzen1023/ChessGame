@@ -8,8 +8,8 @@ class Board(rows: Int, columns: Int) {
 
     private var rows: Int = 0
     private var columns: Int = 0
-    private var boardArray: Array<IntArray>  //Array(rows) {Array(columns) {0}}
-    private val arrayList: ArrayList<Int> = ArrayList()
+    var boardArray: Array<IntArray>  //Array(rows) {Array(columns) {0}}
+    val arrayList: ArrayList<Int> = ArrayList()
 
     private var generalRed: General = General()
     private var guardRed1: Guard = Guard()
@@ -185,7 +185,18 @@ class Board(rows: Int, columns: Int) {
 
     }
 
+    fun getArraySize(): Int {
+        return arrayList.size
+    }
 
+    fun getArrayItem(index: Int): Int {
+        //Log.e(mTAG, "get ${arrayList[index]}")
+        return arrayList[index]
+    }
+
+    fun setArrayItem(index: Int, value: Int) {
+        arrayList[index] = value
+    }
 
     fun getRows(): Int {
         return  rows

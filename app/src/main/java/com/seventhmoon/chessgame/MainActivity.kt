@@ -1,6 +1,8 @@
 package com.seventhmoon.chessgame
 
 import android.os.Bundle
+import android.util.DisplayMetrics
+import android.util.Log
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
 import androidx.core.view.GravityCompat
@@ -15,13 +17,40 @@ import androidx.fragment.app.Fragment
 import com.seventhmoon.chessgame.fragment.FragmentGamePad
 
 class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
+    private val mTAG = MainActivity::class.java.name
+    companion object {
 
+        var height: Int = 0
+        var width: Int = 0
+        var statusBarHeight: Int = 0
+        var actionBarSize: Int = 0
+        var gridLayoutPaddingTop: Int = 0
+        var gridLayoutPaddingLeft: Int = 0
+        var gridLayoutPaddingRight: Int = 0
+        var gridLayoutPaddingBottom: Int = 0
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         val toolbar: Toolbar = findViewById(R.id.toolbar)
         setSupportActionBar(toolbar)
+
+        val displayMetrics = DisplayMetrics()
+        windowManager.defaultDisplay.getMetrics(displayMetrics)
+        height = displayMetrics.heightPixels
+        width = displayMetrics.widthPixels
+
+        val resourceId = resources.getIdentifier("status_bar_height", "dimen", "android")
+        if (resourceId > 0) {
+            statusBarHeight = resources.getDimensionPixelSize(resourceId)
+        }
+
+
+        actionBarSize = toolbar.layoutParams.height
+        Log.e(mTAG, "height = $height, width = $width, actionBarSize = $actionBarSize, statusBarHeight = $statusBarHeight")
+
+
 
         /*val fab: FloatingActionButton = findViewById(R.id.fab)
         fab.setOnClickListener { view ->

@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">ChessGame</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
@@ -13,18 +14,18 @@
     <string name="menu_tools">Tools</string>
     <string name="menu_share">Share</string>
     <string name="menu_send">Send</string>
-    <string name="general_blue">GB</string>
-    <string name="general_red">GR</string>
-    <string name="guard_blue">Gb</string>
-    <string name="guard_red">Gr</string>
-    <string name="hand_blue">HB</string>
-    <string name="hand_red">HR</string>
-    <string name="castle_blue">CB</string>
-    <string name="castle_red">CR</string>
-    <string name="knight_blue">KB</string>
-    <string name="knight_red">KR</string>
-    <string name="cannon_blue">Cb</string>
-    <string name="cannon_red">Cr</string>
-    <string name="soldier_blue">SB</string>
-    <string name="soldier_red">SR</string>
+    <string name="general_blue">將</string>
+    <string name="general_red">帥</string>
+    <string name="guard_blue">士</string>
+    <string name="guard_red">仕</string>
+    <string name="hand_blue">象</string>
+    <string name="hand_red">相</string>
+    <string name="castle_blue">車</string>
+    <string name="castle_red">俥</string>
+    <string name="knight_blue">馬</string>
+    <string name="knight_red">傌</string>
+    <string name="cannon_blue">包</string>
+    <string name="cannon_red">炮</string>
+    <string name="soldier_blue">卒</string>
+    <string name="soldier_red">兵</string>
 </resources>
