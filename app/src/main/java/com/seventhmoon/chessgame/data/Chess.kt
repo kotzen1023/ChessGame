@@ -2,7 +2,7 @@ package com.seventhmoon.chessgame.data
 
 abstract class Chess {
     var id: Int = 0
-    private var isShowed: Boolean = false
+    var isShowed: Boolean = false
     var isDefeat: Boolean = false
     var kind: Boolean = false // false-> Black, true-> red
     var level: Int = 0
@@ -113,7 +113,7 @@ abstract class Chess {
         return ret
     }
 
-    private fun isNeighbor(opp_x: Int, opp_y: Int): Boolean {
+    fun isNeighbor(opp_x: Int, opp_y: Int): Boolean {
         var ret = false
 
         val diffX = opp_x - this.coordinateX
@@ -127,7 +127,7 @@ abstract class Chess {
         return ret
     }
 
-    private fun isCannonTarget(opp_x: Int, opp_y: Int, board: Board): Boolean {
+    fun isCannonTarget(opp_x: Int, opp_y: Int, board: Board): Boolean {
         var ret = true
         if (this.coordinateX != opp_x && this.coordinateY != opp_y) {
             ret = false

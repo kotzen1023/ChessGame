@@ -1,5 +1,7 @@
 package com.seventhmoon.chessgame
 
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.util.DisplayMetrics
 import android.util.Log
@@ -14,10 +16,14 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import android.view.Menu
 import androidx.fragment.app.Fragment
+import com.seventhmoon.chessgame.data.Constants
 import com.seventhmoon.chessgame.fragment.FragmentGamePad
 
 class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
     private val mTAG = MainActivity::class.java.name
+
+    private var mContext: Context? = null
+
     companion object {
 
         var height: Int = 0
@@ -33,6 +39,9 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        mContext = applicationContext
+
         val toolbar: Toolbar = findViewById(R.id.toolbar)
         setSupportActionBar(toolbar)
 
@@ -102,7 +111,12 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         return when (item.itemId) {
-            R.id.action_settings -> true
+            R.id.action_settings -> {
+                val resetIntent = Intent()
+                resetIntent.action = Constants.ACTION.ACTION_RESET_BOARD_ACTION
+                mContext!!.sendBroadcast(resetIntent)
+                true
+            }
             else -> super.onOptionsItemSelected(item)
         }
     }
