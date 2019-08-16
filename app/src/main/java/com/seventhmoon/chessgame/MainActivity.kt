@@ -117,6 +117,14 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 mContext!!.sendBroadcast(resetIntent)
                 true
             }
+
+            R.id.action_auto -> {
+                val autoIntent = Intent()
+                autoIntent.action = Constants.ACTION.ACTION_RANDOM_SELECT_ACTION
+                mContext!!.sendBroadcast(autoIntent)
+                true
+            }
+
             else -> super.onOptionsItemSelected(item)
         }
     }

@@ -1,13 +1,17 @@
 package com.seventhmoon.chessgame.data
 
+import android.content.Context
+import android.graphics.Color
 import android.util.Log
+import com.seventhmoon.chessgame.R
 
 
-class Board(rows: Int, columns: Int) {
+class Board(rows: Int, columns: Int, mContext: Context) {
     private val mTAG = Board::class.java.name
 
     private var rows: Int = 0
     private var columns: Int = 0
+    private val mContext = mContext
     var boardArray: Array<IntArray>  //Array(rows) {Array(columns) {0}}
     val arrayList: ArrayList<Int> = ArrayList()
 
@@ -193,7 +197,8 @@ class Board(rows: Int, columns: Int) {
         for (i in 0 until rows) {
             for (j in 0 until columns) {
                 print(boardArray[i][j])
-                print(", ")
+                if (j%4 != 3)
+                                     print(", ")
             }
             println()
         }
@@ -388,7 +393,8 @@ class Board(rows: Int, columns: Int) {
         for (i in 0 until rows) {
             for (j in 0 until columns) {
                 print(boardArray[i][j])
-                print(", ")
+                if (j%4 != 3)
+                    print(", ")
             }
             println()
         }
@@ -475,7 +481,8 @@ class Board(rows: Int, columns: Int) {
         for (i in 0 until rows) {
             for (j in 0 until columns) {
                 print(boardArray[i][j])
-                print(", ")
+                if (j%4 != 3)
+                    print(", ")
             }
             println()
         }
@@ -642,5 +649,127 @@ class Board(rows: Int, columns: Int) {
         Log.e(mTAG, "=== isNeighbor end ===")
 
         return ret
+    }
+
+    fun chooseShowFromHidden (): Int {
+        var ret = -1
+        //collect
+        val notChooseYetArray: ArrayList<Int> = ArrayList()
+        for(i in 0 until 32) {
+            var add = false
+            when(arrayList[i]) {
+                1 -> add = !generalRed.isShowed
+                2 -> add = !guardRed1.isShowed
+                3 -> add = !guardRed2.isShowed
+                4 -> add = !handRed1.isShowed
+                5 -> add = !handRed2.isShowed
+                6 -> add = !castleRed1.isShowed
+                7 -> add = !castleRed2.isShowed
+                8 -> add = !knightRed1.isShowed
+                9 -> add = !knightRed2.isShowed
+                10-> add = !cannonRed1.isShowed
+                11-> add = !cannonRed2.isShowed
+                12-> add = !soldierRed1.isShowed
+                13-> add = !soldierRed2.isShowed
+                14-> add = !soldierRed3.isShowed
+                15-> add = !soldierRed4.isShowed
+                16-> add = !soldierRed5.isShowed
+                17-> add = !generalBlack.isShowed
+                18-> add = !guardBlack1.isShowed
+                19-> add = !guardBlack2.isShowed
+                20-> add = !handBlack1.isShowed
+                21-> add = !handBlack2.isShowed
+                22-> add = !castleBlack1.isShowed
+                23-> add = !castleBlack2.isShowed
+                24-> add = !knightBlack1.isShowed
+                25-> add = !knightBlack2.isShowed
+                26-> add = !cannonBlack1.isShowed
+                27-> add = !cannonBlack2.isShowed
+                28-> add = !soldierBlack1.isShowed
+                29-> add = !soldierBlack2.isShowed
+                30-> add = !soldierBlack3.isShowed
+                31-> add = !soldierBlack4.isShowed
+                32-> add = !soldierBlack5.isShowed
+            }
+
+            if (add)
+                notChooseYetArray.add(arrayList[i])
+        }
+
+        Log.e(mTAG, "notChooseYetArray.size = ${notChooseYetArray.size}")
+
+        //random choose from
+        var id = 0
+        if (notChooseYetArray.size > 0) {
+            notChooseYetArray.shuffle()
+            //then select first
+            id = notChooseYetArray[0]
+        } else {
+            return ret
+        }
+
+        //find id in original array
+        for (i in 0 until arrayList.size) {
+            if (arrayList[i] == id) {
+                ret = i
+                break
+            }
+        }
+
+        Log.e(mTAG, "found $id in arrayList[$ret]")
+
+        return ret
+    }
+
+    fun getNameFromId(index: Int): String {
+        return when(index) {
+            1 -> mContext.getString(R.string.general_red)
+            2 -> mContext.getString(R.string.guard_red)
+            3 -> mContext.getString(R.string.guard_red)
+            4 -> mContext.getString(R.string.hand_red)
+            5 -> mContext.getString(R.string.hand_red)
+            6 -> mContext.getString(R.string.castle_red)
+            7 -> mContext.getString(R.string.castle_red)
+            8 -> mContext.getString(R.string.knight_red)
+            9 -> mContext.getString(R.string.knight_red)
+            10 -> mContext.getString(R.string.cannon_red)
+            11 -> mContext.getString(R.string.cannon_red)
+            12 -> mContext.getString(R.string.soldier_red)
+            13 -> mContext.getString(R.string.soldier_red)
+            14 -> mContext.getString(R.string.soldier_red)
+            15 -> mContext.getString(R.string.soldier_red)
+            16 -> mContext.getString(R.string.soldier_red)
+            17 -> mContext.getString(R.string.general_blue)
+            18 -> mContext.getString(R.string.guard_blue)
+            19 -> mContext.getString(R.string.guard_blue)
+            20 -> mContext.getString(R.string.hand_blue)
+            21 -> mContext.getString(R.string.hand_blue)
+            22 -> mContext.getString(R.string.castle_blue)
+            23 -> mContext.getString(R.string.castle_blue)
+            24 -> mContext.getString(R.string.knight_blue)
+            25 -> mContext.getString(R.string.knight_blue)
+            26 -> mContext.getString(R.string.cannon_blue)
+            27 -> mContext.getString(R.string.cannon_blue)
+            28 -> mContext.getString(R.string.soldier_blue)
+            29 -> mContext.getString(R.string.soldier_blue)
+            30 -> mContext.getString(R.string.soldier_blue)
+            31 -> mContext.getString(R.string.soldier_blue)
+            32 -> mContext.getString(R.string.soldier_blue)
+            else -> ""
+        }
+    }
+
+    fun getColorFromId(index: Int): Int {
+
+        var color = 0
+        if (index in 1..16) {
+            color = Color.RED
+        } else if (index in 17..32) {
+            color = Color.BLUE
+        } else {
+            color = Color.BLACK
+        }
+
+        return color
     }
 }

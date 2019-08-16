@@ -21,6 +21,7 @@ import com.seventhmoon.chessgame.MainActivity.Companion.width
 import com.seventhmoon.chessgame.R
 import com.seventhmoon.chessgame.data.Board
 import com.seventhmoon.chessgame.data.Constants
+import com.seventhmoon.chessgame.robot.SimpleRobot
 import kotlinx.android.synthetic.main.fragment_gamepad_item.view.*
 import kotlin.random.Random
 
@@ -41,6 +42,11 @@ class FragmentGamePad : Fragment() {
 
     private var mReceiver: BroadcastReceiver? = null
     private var isRegister = false
+
+    private var isClickFirst = false
+
+    var robot1: SimpleRobot? = null
+    var robot2: SimpleRobot? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -69,7 +75,10 @@ class FragmentGamePad : Fragment() {
 
 
 
-        board = Board(8, 4) // init board
+        board = Board(8, 4, gamePadContext as Context) // init board
+        //init two robot
+        robot1 = SimpleRobot("Robot1")
+        robot2 = SimpleRobot("Robot2")
 
         for (i in 0 until board!!.getArraySize()) {
             val itemView = inflater.inflate(R.layout.fragment_gamepad_item, gridLayout, false)
@@ -91,18 +100,34 @@ class FragmentGamePad : Fragment() {
             }
 
             itemView.setOnClickListener {
+
                 val chess = board!!.getChessFromId(board!!.getArrayItem(it.tag as Int))
                 if (!chess.isShowed) {
                     chess.isShowed = true
 
                     //set color
-                    gridLayout!![it.tag as Int].text.setTextColor(getColorFromId(chess.id))
+                    gridLayout!![it.tag as Int].text.setTextColor(board!!.getColorFromId(chess.id))
                     //set name
-                    gridLayout!![it.tag as Int].text.text = getNameFromId(chess.id)
+                    gridLayout!![it.tag as Int].text.text = board!!.getNameFromId(chess.id)
 
                     gridLayout!!.invalidate()
                 }
-                Log.e(mTAG, "This chess id is ${chess.id}, it's ${getNameFromId(chess.id)}")
+                Log.e(mTAG, "This chess id is ${chess.id}, it's ${board!!.getNameFromId(chess.id)}")
+
+                //detect user click
+                if (!isClickFirst) {
+                    if (chess.id < 17) { //robot1 is red, robot2 is blue
+                        robot1!!.firstShow(chess.id, false, board!!.boardArray, true)
+                        robot2!!.firstShow(chess.id, true, board!!.boardArray, false)
+
+                    } else { //robot1 is blue, robot2 is red
+                        robot1!!.firstShow(chess.id, true, board!!.boardArray, true)
+                        robot2!!.firstShow(chess.id, false, board!!.boardArray, false)
+
+                    }
+
+                    isClickFirst = true
+                }
             }
 
             var text = itemView.findViewById(R.id.text) as TextView
@@ -137,6 +162,66 @@ class FragmentGamePad : Fragment() {
                         }
 
                         gridLayout!!.invalidate()
+                        isClickFirst = false
+
+                        robot1!!.reset()
+                        robot2!!.reset()
+
+                    } else if (intent.action!!.equals(Constants.ACTION.ACTION_RANDOM_SELECT_ACTION, ignoreCase = true)) {
+
+                        if (robot1!!.state == SimpleRobot.CurrentState.STATE_INIT && robot2!!.state == SimpleRobot.CurrentState.STATE_INIT) {
+                            val clickIndex = board!!.chooseShowFromHidden()
+
+                            if (clickIndex > -1) {
+                                val chess = board!!.getChessFromId(board!!.getArrayItem(clickIndex))
+                                if (!chess.isShowed) {
+                                    chess.isShowed = true
+
+                                    //set color
+                                    gridLayout!![clickIndex].text.setTextColor(board!!.getColorFromId(chess.id))
+                                    //set name
+                                    gridLayout!![clickIndex].text.text = board!!.getNameFromId(chess.id)
+
+                                    gridLayout!!.invalidate()
+                                }
+                                Log.e(mTAG, "This chess id is ${chess.id}, it's ${board!!.getNameFromId(chess.id)}")
+
+                                //detect user click
+                                if (!isClickFirst) {
+                                    if (chess.id < 17) { //robot1 is red, robot2 is blue
+                                        robot1!!.firstShow(chess.id, false, board!!.boardArray, true)
+                                        robot2!!.firstShow(chess.id, true, board!!.boardArray, false)
+
+                                    } else { //robot1 is blue, robot2 is red
+                                        robot1!!.firstShow(chess.id, true, board!!.boardArray, true)
+                                        robot2!!.firstShow(chess.id, false, board!!.boardArray, false)
+
+                                    }
+                                    isClickFirst = true
+                                }
+                            }
+                        } else {
+                            val robot1State = robot1!!.stateStack.peek() //see previous state
+                            val robot2State = robot2!!.stateStack.peek()
+
+                            if (robot1State.isMyTurn) { //should be robot2's turn
+                                val selectIndex = robot2!!.randomChoose(board as Board)
+
+                                var stateRobot1 = robot2!!.stateStack.peek()
+                                stateRobot1.isMyTurn = false
+
+                                gridLayout!![selectIndex].text.setTextColor(board!!.getColorFromId(board!!.getArrayItem(selectIndex)))
+                                //set name
+                                gridLayout!![selectIndex].text.text = board!!.getNameFromId(board!!.getArrayItem(selectIndex))
+
+                                gridLayout!!.invalidate()
+
+                            }
+                        }
+
+
+
+
                     }
                 }
             }
@@ -146,6 +231,7 @@ class FragmentGamePad : Fragment() {
         if (!isRegister) {
             filter = IntentFilter()
             filter.addAction(Constants.ACTION.ACTION_RESET_BOARD_ACTION)
+            filter.addAction(Constants.ACTION.ACTION_RANDOM_SELECT_ACTION)
             gamePadContext?.registerReceiver(mReceiver, filter)
             isRegister = true
             Log.d(mTAG, "registerReceiver mReceiver")
@@ -222,14 +308,14 @@ class FragmentGamePad : Fragment() {
 
 
                                 //set color
-                                gridLayout!![dragIndex].text.setTextColor(getColorFromId(board!!.getArrayItem(dragIndex)))
+                                gridLayout!![dragIndex].text.setTextColor(board!!.getColorFromId(board!!.getArrayItem(dragIndex)))
                                 //set name
-                                gridLayout!![dragIndex].text.text = getNameFromId(board!!.getArrayItem(dragIndex))
+                                gridLayout!![dragIndex].text.text = board!!.getNameFromId(board!!.getArrayItem(dragIndex))
 
                                 //set color
-                                gridLayout!![replaceIndex].text.setTextColor(getColorFromId(temp))
+                                gridLayout!![replaceIndex].text.setTextColor(board!!.getColorFromId(temp))
                                 //set name
-                                gridLayout!![replaceIndex].text.text = getNameFromId(temp)
+                                gridLayout!![replaceIndex].text.text = board!!.getNameFromId(temp)
 
                                 gridLayout!![dragIndex].visibility = View.VISIBLE
 
@@ -277,14 +363,14 @@ class FragmentGamePad : Fragment() {
 
 
                                 //set color
-                                gridLayout!![dragIndex].text.setTextColor(getColorFromId(board!!.getArrayItem(dragIndex)))
+                                gridLayout!![dragIndex].text.setTextColor(board!!.getColorFromId(board!!.getArrayItem(dragIndex)))
                                 //set name
-                                gridLayout!![dragIndex].text.text = getNameFromId(board!!.getArrayItem(dragIndex))
+                                gridLayout!![dragIndex].text.text = board!!.getNameFromId(board!!.getArrayItem(dragIndex))
 
                                 //set color
-                                gridLayout!![replaceIndex].text.setTextColor(getColorFromId(temp))
+                                gridLayout!![replaceIndex].text.setTextColor(board!!.getColorFromId(temp))
                                 //set name
-                                gridLayout!![replaceIndex].text.text = getNameFromId(temp)
+                                gridLayout!![replaceIndex].text.text = board!!.getNameFromId(temp)
 
                                 Log.e(mTAG, "gridLayout.size = "+gridLayout!!.size)
 
@@ -335,55 +421,5 @@ class FragmentGamePad : Fragment() {
         return index
     }
 
-    private fun getNameFromId(index: Int): String {
-        return when(index) {
-            1 -> getString(R.string.general_red)
-            2 -> getString(R.string.guard_red)
-            3 -> getString(R.string.guard_red)
-            4 -> getString(R.string.hand_red)
-            5 -> getString(R.string.hand_red)
-            6 -> getString(R.string.castle_red)
-            7 -> getString(R.string.castle_red)
-            8 -> getString(R.string.knight_red)
-            9 -> getString(R.string.knight_red)
-            10 -> getString(R.string.cannon_red)
-            11 -> getString(R.string.cannon_red)
-            12 -> getString(R.string.soldier_red)
-            13 -> getString(R.string.soldier_red)
-            14 -> getString(R.string.soldier_red)
-            15 -> getString(R.string.soldier_red)
-            16 -> getString(R.string.soldier_red)
-            17 -> getString(R.string.general_blue)
-            18 -> getString(R.string.guard_blue)
-            19 -> getString(R.string.guard_blue)
-            20 -> getString(R.string.hand_blue)
-            21 -> getString(R.string.hand_blue)
-            22 -> getString(R.string.castle_blue)
-            23 -> getString(R.string.castle_blue)
-            24 -> getString(R.string.knight_blue)
-            25 -> getString(R.string.knight_blue)
-            26 -> getString(R.string.cannon_blue)
-            27 -> getString(R.string.cannon_blue)
-            28 -> getString(R.string.soldier_blue)
-            29 -> getString(R.string.soldier_blue)
-            30 -> getString(R.string.soldier_blue)
-            31 -> getString(R.string.soldier_blue)
-            32 -> getString(R.string.soldier_blue)
-            else -> ""
-        }
-    }
 
-    private fun getColorFromId(index: Int): Int {
-
-        var color = 0
-        if (index in 1..16) {
-            color = Color.RED
-        } else if (index in 17..32) {
-            color = Color.BLUE
-        } else {
-            color = Color.BLACK
-        }
-
-        return color
-    }
 }
