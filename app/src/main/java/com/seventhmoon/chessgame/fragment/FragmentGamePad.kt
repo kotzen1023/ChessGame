@@ -21,6 +21,7 @@ import com.seventhmoon.chessgame.MainActivity.Companion.width
 import com.seventhmoon.chessgame.R
 import com.seventhmoon.chessgame.data.Board
 import com.seventhmoon.chessgame.data.Constants
+import com.seventhmoon.chessgame.robot.RobotBoardState
 import com.seventhmoon.chessgame.robot.SimpleRobot
 import kotlinx.android.synthetic.main.fragment_gamepad_item.view.*
 import kotlin.random.Random
@@ -79,6 +80,8 @@ class FragmentGamePad : Fragment() {
         //init two robot
         robot1 = SimpleRobot("Robot1")
         robot2 = SimpleRobot("Robot2")
+        robot1!!.boardInitState(board!!.boardArray)
+        robot2!!.boardInitState(board!!.boardArray)
 
         for (i in 0 until board!!.getArraySize()) {
             val itemView = inflater.inflate(R.layout.fragment_gamepad_item, gridLayout, false)
@@ -132,7 +135,7 @@ class FragmentGamePad : Fragment() {
 
             var text = itemView.findViewById(R.id.text) as TextView
             text.setTextColor(Color.BLACK)
-            text.text = "o"
+            text.text = "O"
 
             //text.setTextColor(getColorFromId(board!!.getArrayItem(i)))
             //text.text = getNameFromId(board!!.getArrayItem(i))
@@ -158,16 +161,18 @@ class FragmentGamePad : Fragment() {
                             //set color
                             gridLayout!![i].text.setTextColor(Color.BLACK)
                             //set name
-                            gridLayout!![i].text.text = "o"
+                            gridLayout!![i].text.text = "O"
                         }
 
                         gridLayout!!.invalidate()
                         isClickFirst = false
 
-                        robot1!!.reset()
-                        robot2!!.reset()
+                        robot1!!.reset(board!!.boardArray)
+                        robot2!!.reset(board!!.boardArray)
 
                     } else if (intent.action!!.equals(Constants.ACTION.ACTION_RANDOM_SELECT_ACTION, ignoreCase = true)) {
+
+
 
                         if (robot1!!.state == SimpleRobot.CurrentState.STATE_INIT && robot2!!.state == SimpleRobot.CurrentState.STATE_INIT) {
                             val clickIndex = board!!.chooseShowFromHidden()
@@ -200,22 +205,60 @@ class FragmentGamePad : Fragment() {
                                     isClickFirst = true
                                 }
                             }
-                        } else {
+                        } else { // state = RUNNING
                             val robot1State = robot1!!.stateStack.peek() //see previous state
-                            val robot2State = robot2!!.stateStack.peek()
+                            //val robot2State = robot2!!.stateStack.peek()
 
                             if (robot1State.isMyTurn) { //should be robot2's turn
-                                val selectIndex = robot2!!.randomChoose(board as Board)
 
-                                var stateRobot1 = robot2!!.stateStack.peek()
-                                stateRobot1.isMyTurn = false
+                                val ret = robot2!!.thinking(board as Board)
+                                when(ret) {
+                                    1 -> {
+                                        val selectIndex = robot2!!.randomChoose(board as Board)
 
-                                gridLayout!![selectIndex].text.setTextColor(board!!.getColorFromId(board!!.getArrayItem(selectIndex)))
-                                //set name
-                                gridLayout!![selectIndex].text.text = board!!.getNameFromId(board!!.getArrayItem(selectIndex))
+                                        if (selectIndex > -1) {
+                                            var stateRobot1 = robot2!!.stateStack.peek()
+                                            stateRobot1.isMyTurn = false
+                                            stateRobot1.kind = robot1!!.chooseKind
+                                            robot1!!.stateStack.push(stateRobot1)
 
-                                gridLayout!!.invalidate()
+                                            gridLayout!![selectIndex].text.setTextColor(board!!.getColorFromId(board!!.getArrayItem(selectIndex)))
+                                            //set name
+                                            gridLayout!![selectIndex].text.text = board!!.getNameFromId(board!!.getArrayItem(selectIndex))
 
+                                            gridLayout!!.invalidate()
+                                        }
+                                    }
+                                    2 -> {
+                                        Log.e(mTAG, "robot2->2")
+                                    }
+                                }
+
+
+                            } else { //should be robot1's turn
+                                val ret = robot1!!.thinking(board as Board)
+
+                                when(ret) {
+                                    1 -> {
+                                        val selectIndex = robot1!!.randomChoose(board as Board)
+
+                                        if (selectIndex > -1) {
+                                            var stateRobot2 = robot1!!.stateStack.peek()
+                                            stateRobot2.isMyTurn = false
+                                            stateRobot2.kind = robot2!!.chooseKind
+                                            robot2!!.stateStack.push(stateRobot2)
+
+                                            gridLayout!![selectIndex].text.setTextColor(board!!.getColorFromId(board!!.getArrayItem(selectIndex)))
+                                            //set name
+                                            gridLayout!![selectIndex].text.text = board!!.getNameFromId(board!!.getArrayItem(selectIndex))
+
+                                            gridLayout!!.invalidate()
+                                        }
+                                    }
+                                    2 -> {
+                                        Log.e(mTAG, "robot1->2")
+                                    }
+                                }
                             }
                         }
 

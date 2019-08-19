@@ -17,57 +17,68 @@ class SimpleRobot(name: String) {
         STATE_NONE, STATE_INIT, STATE_RUNNING
     }
 
+
+
     init {
+        Log.d(mTAG, "=== SimpleRobot: ($robotName) init start ===")
         robotName = name
-        //push in first shuffle board
-        //chooseKind = kind
-
-        /*val initState = RobotBoardState()
-        initState.isMyTurn = turn
-        initState.kind = chooseKind
-        initState.array = arrayList
-        stateStack.push(initState)*/
-
-        Log.d(mTAG, "=== SimpleRobot: ($robotName) was created ===")
-
-        /*for (i in 0 until stateStack.peek().array.size) {
-            for (j in 0 until stateStack.peek().array[i].size) {
-                print(initState.array[i][j])
-                if (j%4 != 3)
-                    print(", ")
-            }
-            println()
-        }*/
-        Log.d(mTAG, "=== SimpleRobot: ($robotName) end ===")
-        state = CurrentState.STATE_INIT
-    }
-
-    fun reset() {
-        Log.d(mTAG, "=== reset === start")
-        //robotName = name
-        //chooseKind = kind
-        //clear stack
         stateStack.clear()
         aliveAndIsShowedList.clear()
 
-        /*val initState = RobotBoardState()
-        initState.isMyTurn = turn
-        initState.kind = chooseKind
+
+        state = CurrentState.STATE_NONE
+        Log.d(mTAG, "=== SimpleRobot: ($robotName) init end ===")
+    }
+
+    fun boardInitState(arrayList: Array<IntArray>) {
+
+        Log.e(mTAG, "=== $robotName boardInitState start === ")
+
+        val initState = RobotBoardState()
+        initState.isMyTurn = false
+        initState.kind = false
         initState.array = arrayList
-        stateStack.push(initState)*/
+        stateStack.push(initState)
 
-        Log.d(mTAG, "=== SimpleRobot: ($robotName) was reset ===")
+        state = CurrentState.STATE_INIT
 
-        /*for (i in 0 until initState.array.size) {
+        for (i in 0 until initState.array.size) {
             for (j in 0 until initState.array[i].size) {
                 print(initState.array[i][j])
                 if (j%4 != 3)
                     print(", ")
             }
             println()
-        }*/
-        Log.d(mTAG, "=== SimpleRobot: ($robotName) end ===")
+        }
+
+        Log.e(mTAG, "=== $robotName boardInitState end === ")
+    }
+
+    fun reset(arrayList: Array<IntArray>) {
+        Log.d(mTAG, "=== SimpleRobot: ($robotName) reset start ===")
+        //robotName = name
+        //chooseKind = kind
+        //clear stack
+        stateStack.clear()
+        aliveAndIsShowedList.clear()
+
+        val initState = RobotBoardState()
+        initState.isMyTurn = false
+        initState.kind = false
+        initState.array = arrayList
+        stateStack.push(initState)
         state = CurrentState.STATE_INIT
+
+        for (i in 0 until initState.array.size) {
+            for (j in 0 until initState.array[i].size) {
+                print(initState.array[i][j])
+                if (j % 4 != 3)
+                    print(", ")
+            }
+            println()
+        }
+        Log.d(mTAG, "=== SimpleRobot: ($robotName) end ===")
+
     }
 
     fun firstShow(id: Int, kind: Boolean, arrayList: Array<IntArray>, turn: Boolean) {
@@ -82,6 +93,8 @@ class SimpleRobot(name: String) {
         initState.kind = chooseKind
         initState.array = arrayList
         stateStack.push(initState)
+
+        Log.e(mTAG, "stack size = ${stateStack.size}")
 
         for (i in 0 until stateStack.peek().array.size) {
             for (j in 0 until stateStack.peek().array[i].size) {
@@ -122,8 +135,27 @@ class SimpleRobot(name: String) {
         return selectIndex
     }
 
-    fun thinking() {
-        //find a chess you can take down opponent
+    fun activatedChessMoveOrEat(board: Board) {
 
+        aliveAndIsShowedList.sortedDescending()
+
+        /*for (index in 0 until aliveAndIsShowedList.size) {
+            //find position with id
+            for (i in 0 until board.getRows()) {
+                for ()
+            }
+        }*/
+    }
+
+    fun thinking(board: Board): Int {
+        //find a chess you can take down opponent
+        var ret = 0 //surrender
+        if (aliveAndIsShowedList.size == 0) {
+            ret = 1 // random choose
+        } else if (aliveAndIsShowedList.size > 0) {
+            ret = 2 //
+        }
+
+        return ret
     }
 }
