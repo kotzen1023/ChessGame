@@ -120,7 +120,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
             R.id.action_auto -> {
                 val autoIntent = Intent()
-                autoIntent.action = Constants.ACTION.ACTION_RANDOM_SELECT_ACTION
+                autoIntent.action = Constants.ACTION.ACTION_ROBOT_THINK_ACTION
                 mContext!!.sendBroadcast(autoIntent)
                 true
             }

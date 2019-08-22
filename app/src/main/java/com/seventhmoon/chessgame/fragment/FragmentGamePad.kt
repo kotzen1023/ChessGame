@@ -5,7 +5,6 @@ import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
 import android.view.*
-import android.widget.Button
 
 
 import android.widget.TextView
@@ -13,7 +12,6 @@ import androidx.core.view.get
 import androidx.core.view.size
 import androidx.fragment.app.Fragment
 import androidx.gridlayout.widget.GridLayout
-import com.seventhmoon.chessgame.MainActivity
 import com.seventhmoon.chessgame.MainActivity.Companion.actionBarSize
 import com.seventhmoon.chessgame.MainActivity.Companion.height
 import com.seventhmoon.chessgame.MainActivity.Companion.statusBarHeight
@@ -21,15 +19,8 @@ import com.seventhmoon.chessgame.MainActivity.Companion.width
 import com.seventhmoon.chessgame.R
 import com.seventhmoon.chessgame.data.Board
 import com.seventhmoon.chessgame.data.Constants
-import com.seventhmoon.chessgame.robot.RobotBoardState
 import com.seventhmoon.chessgame.robot.SimpleRobot
 import kotlinx.android.synthetic.main.fragment_gamepad_item.view.*
-import kotlin.random.Random
-
-
-
-
-
 
 
 class FragmentGamePad : Fragment() {
@@ -78,10 +69,9 @@ class FragmentGamePad : Fragment() {
 
         board = Board(8, 4, gamePadContext as Context) // init board
         //init two robot
-        robot1 = SimpleRobot("Robot1")
-        robot2 = SimpleRobot("Robot2")
-        robot1!!.boardInitState(board!!.boardArray)
-        robot2!!.boardInitState(board!!.boardArray)
+        robot1 = SimpleRobot("Robot1", gamePadContext as Context)
+        robot2 = SimpleRobot("Robot2", gamePadContext as Context)
+
 
         for (i in 0 until board!!.getArraySize()) {
             val itemView = inflater.inflate(R.layout.fragment_gamepad_item, gridLayout, false)
@@ -112,25 +102,26 @@ class FragmentGamePad : Fragment() {
                     gridLayout!![it.tag as Int].text.setTextColor(board!!.getColorFromId(chess.id))
                     //set name
                     gridLayout!![it.tag as Int].text.text = board!!.getNameFromId(chess.id)
-
                     gridLayout!!.invalidate()
-                }
-                Log.e(mTAG, "This chess id is ${chess.id}, it's ${board!!.getNameFromId(chess.id)}")
+                    Log.e(mTAG, "This chess id is ${chess.id}, it's ${board!!.getNameFromId(chess.id)}")
 
-                //detect user click
-                if (!isClickFirst) {
-                    if (chess.id < 17) { //robot1 is red, robot2 is blue
-                        robot1!!.firstShow(chess.id, false, board!!.boardArray, true)
-                        robot2!!.firstShow(chess.id, true, board!!.boardArray, false)
+                    //detect user click
 
-                    } else { //robot1 is blue, robot2 is red
-                        robot1!!.firstShow(chess.id, true, board!!.boardArray, true)
-                        robot2!!.firstShow(chess.id, false, board!!.boardArray, false)
-
+                    if (board!!.getMove() % 2 == 0) { //robot1's turn
+                        robot1!!.showChess(chess.id, board!!.getMove())
+                        robot1!!.showAliveList()
+                    } else {
+                        robot2!!.showChess(chess.id, board!!.getMove())
+                        robot2!!.showAliveList()
                     }
 
-                    isClickFirst = true
+                    board!!.saveCurrentState()
+                } else {
+                    Log.e(mTAG, "This chess was been showed.")
                 }
+
+
+
             }
 
             var text = itemView.findViewById(R.id.text) as TextView
@@ -167,97 +158,85 @@ class FragmentGamePad : Fragment() {
                         gridLayout!!.invalidate()
                         isClickFirst = false
 
-                        robot1!!.reset(board!!.boardArray)
-                        robot2!!.reset(board!!.boardArray)
+                        robot1!!.reset()
+                        robot2!!.reset()
 
-                    } else if (intent.action!!.equals(Constants.ACTION.ACTION_RANDOM_SELECT_ACTION, ignoreCase = true)) {
+                    } else if (intent.action!!.equals(Constants.ACTION.ACTION_SET_ROBOT2_KIND_AS_TRUE_ACTION, ignoreCase = true)) {
+                        Log.d(mTAG, "ACTION_SET_ROBOT2_KIND_AS_TRUE_ACTION")
 
+                        robot2!!.chooseKind = true
 
+                    } else if (intent.action!!.equals(Constants.ACTION.ACTION_ROBOT_THINK_ACTION, ignoreCase = true)) {
+                        Log.d(mTAG, "ACTION_ROBOT_THINK_ACTION")
 
-                        if (robot1!!.state == SimpleRobot.CurrentState.STATE_INIT && robot2!!.state == SimpleRobot.CurrentState.STATE_INIT) {
-                            val clickIndex = board!!.chooseShowFromHidden()
+                        if (board!!.getMove() % 2 == 0) {//robot1's turn
+                            when(robot1!!.thinking())
+                            {
+                                1 -> {
+                                    val clickIndex = board!!.chooseShowFromHidden()
+                                    val chess = board!!.getChessFromId(board!!.getArrayItem(clickIndex))
 
-                            if (clickIndex > -1) {
-                                val chess = board!!.getChessFromId(board!!.getArrayItem(clickIndex))
-                                if (!chess.isShowed) {
-                                    chess.isShowed = true
+                                    if (!chess.isShowed) {
+                                        chess.isShowed = true
 
-                                    //set color
-                                    gridLayout!![clickIndex].text.setTextColor(board!!.getColorFromId(chess.id))
-                                    //set name
-                                    gridLayout!![clickIndex].text.text = board!!.getNameFromId(chess.id)
+                                        //set color
+                                        gridLayout!![clickIndex].text.setTextColor(board!!.getColorFromId(chess.id))
+                                        //set name
+                                        gridLayout!![clickIndex].text.text = board!!.getNameFromId(chess.id)
 
-                                    gridLayout!!.invalidate()
-                                }
-                                Log.e(mTAG, "This chess id is ${chess.id}, it's ${board!!.getNameFromId(chess.id)}")
-
-                                //detect user click
-                                if (!isClickFirst) {
-                                    if (chess.id < 17) { //robot1 is red, robot2 is blue
-                                        robot1!!.firstShow(chess.id, false, board!!.boardArray, true)
-                                        robot2!!.firstShow(chess.id, true, board!!.boardArray, false)
-
-                                    } else { //robot1 is blue, robot2 is red
-                                        robot1!!.firstShow(chess.id, true, board!!.boardArray, true)
-                                        robot2!!.firstShow(chess.id, false, board!!.boardArray, false)
-
+                                        gridLayout!!.invalidate()
                                     }
-                                    isClickFirst = true
+                                    Log.e(mTAG, "This chess id is ${chess.id}, it's ${board!!.getNameFromId(chess.id)}")
+
+                                    robot1!!.showChess(chess.id, board!!.getMove())
+                                    robot1!!.showAliveList()
+
+                                    /*if (board!!.getMove() % 2 == 0) { //robot1's turn
+                                        robot1!!.showChess(chess.id, board!!.getMove())
+                                        robot1!!.showAliveList()
+                                    } else { //robot2's turn
+                                        robot2!!.showChess(chess.id, board!!.getMove())
+                                        robot2!!.showAliveList()
+                                    }*/
+                                }
+                                2 -> {
+                                    Log.e(mTAG, "robot1 look for alive list")
+                                    robot1!!.checkAliveListNeighbor(board as Board)
                                 }
                             }
-                        } else { // state = RUNNING
-                            val robot1State = robot1!!.stateStack.peek() //see previous state
-                            //val robot2State = robot2!!.stateStack.peek()
+                        } else {
+                            when(robot2!!.thinking())
+                            {
+                                1 -> {
+                                    val clickIndex = board!!.chooseShowFromHidden()
+                                    val chess = board!!.getChessFromId(board!!.getArrayItem(clickIndex))
 
-                            if (robot1State.isMyTurn) { //should be robot2's turn
+                                    if (!chess.isShowed) {
+                                        chess.isShowed = true
 
-                                val ret = robot2!!.thinking(board as Board)
-                                when(ret) {
-                                    1 -> {
-                                        val selectIndex = robot2!!.randomChoose(board as Board)
+                                        //set color
+                                        gridLayout!![clickIndex].text.setTextColor(board!!.getColorFromId(chess.id))
+                                        //set name
+                                        gridLayout!![clickIndex].text.text = board!!.getNameFromId(chess.id)
 
-                                        if (selectIndex > -1) {
-                                            var stateRobot1 = robot2!!.stateStack.peek()
-                                            stateRobot1.isMyTurn = false
-                                            stateRobot1.kind = robot1!!.chooseKind
-                                            robot1!!.stateStack.push(stateRobot1)
-
-                                            gridLayout!![selectIndex].text.setTextColor(board!!.getColorFromId(board!!.getArrayItem(selectIndex)))
-                                            //set name
-                                            gridLayout!![selectIndex].text.text = board!!.getNameFromId(board!!.getArrayItem(selectIndex))
-
-                                            gridLayout!!.invalidate()
-                                        }
+                                        gridLayout!!.invalidate()
                                     }
-                                    2 -> {
-                                        Log.e(mTAG, "robot2->2")
-                                    }
+                                    Log.e(mTAG, "This chess id is ${chess.id}, it's ${board!!.getNameFromId(chess.id)}")
+
+                                    robot2!!.showChess(chess.id, board!!.getMove())
+                                    robot2!!.showAliveList()
+
+                                    /*if (board!!.getMove() % 2 == 0) { //robot1's turn
+                                        robot1!!.showChess(chess.id, board!!.getMove())
+                                        robot1!!.showAliveList()
+                                    } else { //robot2's turn
+                                        robot2!!.showChess(chess.id, board!!.getMove())
+                                        robot2!!.showAliveList()
+                                    }*/
                                 }
-
-
-                            } else { //should be robot1's turn
-                                val ret = robot1!!.thinking(board as Board)
-
-                                when(ret) {
-                                    1 -> {
-                                        val selectIndex = robot1!!.randomChoose(board as Board)
-
-                                        if (selectIndex > -1) {
-                                            var stateRobot2 = robot1!!.stateStack.peek()
-                                            stateRobot2.isMyTurn = false
-                                            stateRobot2.kind = robot2!!.chooseKind
-                                            robot2!!.stateStack.push(stateRobot2)
-
-                                            gridLayout!![selectIndex].text.setTextColor(board!!.getColorFromId(board!!.getArrayItem(selectIndex)))
-                                            //set name
-                                            gridLayout!![selectIndex].text.text = board!!.getNameFromId(board!!.getArrayItem(selectIndex))
-
-                                            gridLayout!!.invalidate()
-                                        }
-                                    }
-                                    2 -> {
-                                        Log.e(mTAG, "robot1->2")
-                                    }
+                                2 -> {
+                                    Log.e(mTAG, "robot2 look for alive list")
+                                    robot2!!.checkAliveListNeighbor(board as Board)
                                 }
                             }
                         }
@@ -265,6 +244,42 @@ class FragmentGamePad : Fragment() {
 
 
 
+
+                        board!!.saveCurrentState()
+
+
+                    } else if (intent.action!!.equals(Constants.ACTION.ACTION_SAVE_ID_TO_ANOTHER_ROBOT_ALIVE_LIST_ACTION, ignoreCase = true)) {
+                        Log.d(mTAG, "ACTION_SAVE_ID_TO_ANOTHER_ROBOT_ALIVE_LIST_ACTION")
+
+                        val id = intent.getIntExtra("ID", 0)
+                        if (id < 17) { //red
+                            if (!robot1!!.chooseKind) {
+                                robot1!!.addChessToAliveList(id)
+                            } else {
+                                robot2!!.addChessToAliveList(id)
+                            }
+                        } else { //black
+                            if (!robot1!!.chooseKind) { //red
+                                robot2!!.addChessToAliveList(id)
+                            } else {
+                                robot1!!.addChessToAliveList(id)
+                            }
+                        }
+                        robot1!!.showAliveList()
+                        robot2!!.showAliveList()
+                    } else if (intent.action!!.equals(Constants.ACTION.ACTION_SEND_ID_TO_ANOTHER_ROBOT_IN_ENEMY_LIST_ACTION, ignoreCase = true)) {
+                        Log.d(mTAG, "ACTION_SEND_ID_TO_ANOTHER_ROBOT_IN_ENEMY_LIST_ACTION")
+
+                        val id = intent.getIntExtra("ENEMY_ID", 0)
+                        val kind = intent.getBooleanExtra("ENEMY_KIND", false)
+
+                        if (robot1!!.chooseKind == kind) {
+                            robot2!!.addChessToEnemyList(id)
+                            robot2!!.showEnemyList()
+                        } else {
+                            robot1!!.addChessToEnemyList(id)
+                            robot1!!.showEnemyList()
+                        }
                     }
                 }
             }
@@ -274,7 +289,10 @@ class FragmentGamePad : Fragment() {
         if (!isRegister) {
             filter = IntentFilter()
             filter.addAction(Constants.ACTION.ACTION_RESET_BOARD_ACTION)
-            filter.addAction(Constants.ACTION.ACTION_RANDOM_SELECT_ACTION)
+            filter.addAction(Constants.ACTION.ACTION_SET_ROBOT2_KIND_AS_TRUE_ACTION)
+            filter.addAction(Constants.ACTION.ACTION_ROBOT_THINK_ACTION)
+            filter.addAction(Constants.ACTION.ACTION_SAVE_ID_TO_ANOTHER_ROBOT_ALIVE_LIST_ACTION)
+            filter.addAction(Constants.ACTION.ACTION_SEND_ID_TO_ANOTHER_ROBOT_IN_ENEMY_LIST_ACTION)
             gamePadContext?.registerReceiver(mReceiver, filter)
             isRegister = true
             Log.d(mTAG, "registerReceiver mReceiver")

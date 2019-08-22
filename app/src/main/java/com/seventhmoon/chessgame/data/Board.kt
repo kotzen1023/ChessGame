@@ -4,16 +4,20 @@ import android.content.Context
 import android.graphics.Color
 import android.util.Log
 import com.seventhmoon.chessgame.R
+import java.util.*
+import kotlin.collections.ArrayList
 
 
 class Board(rows: Int, columns: Int, mContext: Context) {
     private val mTAG = Board::class.java.name
-
+    private var move: Int = 0
     private var rows: Int = 0
     private var columns: Int = 0
     private val mContext = mContext
     var boardArray: Array<IntArray>  //Array(rows) {Array(columns) {0}}
     val arrayList: ArrayList<Int> = ArrayList()
+
+    val boardStateStack: Stack<BoardState> = Stack()
 
     var generalRed: General = General()
     var guardRed1: Guard = Guard()
@@ -72,23 +76,6 @@ class Board(rows: Int, columns: Int, mContext: Context) {
         soldierRed4.id = 15
         soldierRed5.id = 16
 
-        generalRed.kind = true
-        guardRed1.kind = true
-        guardRed2.kind = true
-        handRed1.kind = true
-        handRed2.kind = true
-        castleRed1.kind = true
-        castleRed2.kind = true
-        knightRed1.kind = true
-        knightRed2.kind = true
-        cannonRed1.kind = true
-        cannonRed2.kind = true
-        soldierRed1.kind = true
-        soldierRed2.kind = true
-        soldierRed3.kind = true
-        soldierRed4.kind = true
-        soldierRed5.kind = true
-
         generalBlack.id = 17
         guardBlack1.id = 18
         guardBlack2.id = 19
@@ -105,6 +92,24 @@ class Board(rows: Int, columns: Int, mContext: Context) {
         soldierBlack3.id = 30
         soldierBlack4.id = 31
         soldierBlack5.id = 32
+
+        //init as black
+        generalBlack.kind = true
+        guardBlack1.kind = true
+        guardBlack2.kind = true
+        handBlack1.kind = true
+        handBlack2.kind = true
+        castleBlack1.kind = true
+        castleBlack2.kind = true
+        knightBlack1.kind = true
+        knightBlack2.kind = true
+        cannonBlack1.kind = true
+        cannonBlack2.kind = true
+        soldierBlack1.kind = true
+        soldierBlack2.kind = true
+        soldierBlack3.kind = true
+        soldierBlack4.kind = true
+        soldierBlack5.kind = true
 
 
         arrayList.clear()
@@ -198,13 +203,21 @@ class Board(rows: Int, columns: Int, mContext: Context) {
             for (j in 0 until columns) {
                 print(boardArray[i][j])
                 if (j%4 != 3)
-                                     print(", ")
+                    print(", ")
             }
             println()
         }
 
+        //init boardState
+        val boardState = BoardState(0, boardArray)
+        boardStateStack.push(boardState)
+        Log.e(mTAG, "boardStateStack size = ${boardStateStack.size}")
 
+        showCurrentBoardState()
+    }
 
+    fun getMove():  Int {
+        return move
     }
 
     fun getArraySize(): Int {
@@ -239,7 +252,11 @@ class Board(rows: Int, columns: Int, mContext: Context) {
 
 
     fun resetShullfle() {
+
+        move = 0
+
         arrayList.clear()
+        boardStateStack.clear()
 
         for (i in 1 until 33) {
             arrayList.add(i)
@@ -398,6 +415,13 @@ class Board(rows: Int, columns: Int, mContext: Context) {
             }
             println()
         }
+
+        //init boardState
+        val boardState = BoardState(0, boardArray)
+        boardStateStack.push(boardState)
+        Log.e(mTAG, "boardStateStack size = ${boardStateStack.size}")
+
+        showCurrentBoardState()
     }
 
     fun refreshCoordinate() {
@@ -489,7 +513,22 @@ class Board(rows: Int, columns: Int, mContext: Context) {
     }
 
     fun getChessFromId(id: Int): Chess {
+
+        //find coordinate
+        var x = 0
+        var y = 0
+        for (i in 0 until rows) {
+            for (j in 0 until columns) {
+                if (boardArray[i][j] == id) {
+                    x = i
+                    y = j
+                }
+            }
+        }
+
         val chess: Chess = Zero()
+        chess.coordinateX = x
+        chess.coordinateY = y
         return when(id) {
             1  -> generalRed
             2  -> guardRed1
@@ -551,7 +590,7 @@ class Board(rows: Int, columns: Int, mContext: Context) {
                 Log.e(mTAG, "Cannon can't take down it's neighbor")
                 ret = false
             } else {
-                if (srcChess.isCannonTarget(destChess.coordinateX, destChess.coordinateY, this)) {
+                if (srcChess.isCannonTarget(destChess.coordinateX, destChess.coordinateY, destChess.id, this)) {
                     ret = true
                 } else {
                     Log.e(mTAG, "dest's coordinate can't be take down by a cannon")
@@ -771,5 +810,174 @@ class Board(rows: Int, columns: Int, mContext: Context) {
         }
 
         return color
+    }
+
+    fun saveCurrentState() {
+        Log.e(mTAG, "=== board saveCurrentState start ==")
+
+        if (boardStateStack.empty()) {
+            val boardState = BoardState(0, boardArray)
+            boardStateStack.push(boardState)
+
+            showCurrentBoardState()
+        } else {
+            move++
+            val newBoardState = BoardState(move, boardArray)
+            boardStateStack.push(newBoardState)
+
+            showCurrentBoardState()
+        }
+        Log.e(mTAG, "=== board saveCurrentState end ==")
+    }
+
+
+    private fun showCurrentBoardState() {
+        Log.d(mTAG, "=== show current stack start")
+        val currentBoardState = boardStateStack.peek()
+        for (i in 0 until currentBoardState.array.size) {
+            for (j in 0 until currentBoardState.array[i].size) {
+                print(currentBoardState.array[i][j])
+                if (j%4 != 3)
+                    print(", ")
+            }
+            println()
+        }
+        Log.d(mTAG, "=== show current stack end")
+    }
+
+    fun findEnemyIsShowed(id: Int): ArrayList<Int> {
+        val chessIsShowedArray: ArrayList<Int> = ArrayList()
+
+        when (id) {
+            in 1..16 -> {
+                for (i in 0 until arrayList.size) {
+                    if (arrayList[i] in 17..32) {
+                        if (getShowStatusById(arrayList[i])) {
+                            chessIsShowedArray.add(arrayList[i])
+                        }
+                    }
+                }
+            }
+            in 17..32 -> {
+                for (i in 0 until arrayList.size) {
+                    if (arrayList[i] in 1..16) {
+                        if (getShowStatusById(arrayList[i]))
+                            chessIsShowedArray.add(arrayList[i])
+                    }
+                }
+            }
+            else -> Log.e(mTAG,"unknown type")
+        }
+
+
+
+
+        return chessIsShowedArray
+    }
+
+    private fun isIdthesameKind(srcId: Int, destId: Int): Boolean {
+        var ret = false
+        when(srcId) {
+            in 1..16 -> {
+                if (destId in 1..16) {
+                    ret = true
+                }
+            }
+            in 17..32 -> {
+                if (destId in 17..32) {
+                    ret = true
+                }
+            }
+        }
+        return ret
+    }
+
+    private fun getShowStatusById(id: Int):Boolean {
+        return when(id) {
+            1 -> generalRed.isShowed
+            2 -> guardRed1.isShowed
+            3 -> guardRed2.isShowed
+            4 -> handRed1.isShowed
+            5 -> handRed2.isShowed
+            6 -> castleRed1.isShowed
+            7 -> castleRed2.isShowed
+            8 -> knightRed1.isShowed
+            9 -> knightRed2.isShowed
+            10-> cannonRed1.isShowed
+            11-> cannonRed2.isShowed
+            12-> soldierRed1.isShowed
+            13-> soldierRed2.isShowed
+            14-> soldierRed3.isShowed
+            15-> soldierRed4.isShowed
+            16-> soldierRed5.isShowed
+            17-> generalBlack.isShowed
+            18-> guardBlack1.isShowed
+            19-> guardBlack2.isShowed
+            20-> handBlack1.isShowed
+            21-> handBlack2.isShowed
+            22-> castleBlack1.isShowed
+            23-> castleBlack2.isShowed
+            24-> knightBlack1.isShowed
+            25-> knightBlack2.isShowed
+            26-> cannonBlack1.isShowed
+            27-> cannonBlack2.isShowed
+            28-> soldierBlack1.isShowed
+            29-> soldierBlack2.isShowed
+            30-> soldierBlack3.isShowed
+            31-> soldierBlack4.isShowed
+            32-> soldierBlack5.isShowed
+            else -> false
+        }
+    }
+
+    fun findTargetNeighbor(srcId: Int, target_X: Int, target_Y: Int): ArrayList<Int> {
+        Log.e(mTAG, "=== findTargetNeighbor start srcId = $srcId, target_X = $target_X, target_Y = $target_Y  ===")
+        val chessIsShowedArray: ArrayList<Int> = ArrayList()
+
+        val xDown = target_X + 1
+        val xUp   = target_X - 1
+        val yDown = target_Y + 1
+        val yUp   = target_Y - 1
+
+        if (xDown in 0..7) {
+            if (boardArray[xDown][target_Y] > 0 && getShowStatusById(boardArray[xDown][target_Y])) { //not space and is showed
+                if (!isIdthesameKind(srcId, boardArray[xDown][target_Y])) {
+                    chessIsShowedArray.add(boardArray[xDown][target_Y])
+                }
+            }
+        }
+
+        if (xUp in 0..7) {
+            if (boardArray[xUp][target_Y] > 0 && getShowStatusById(boardArray[xUp][target_Y])) {
+                if (!isIdthesameKind(srcId, boardArray[xUp][target_Y])) {
+                    chessIsShowedArray.add(boardArray[xUp][target_Y])
+                }
+            }
+        }
+
+        if (yDown in 0..3) {
+            if (boardArray[target_X][yDown] > 0 && getShowStatusById(boardArray[target_X][yDown])) {
+                if (!isIdthesameKind(srcId, boardArray[target_X][yDown])) {
+                    chessIsShowedArray.add(boardArray[target_X][yDown])
+                }
+            }
+        }
+
+        if (yUp in 0..3) {
+            if (boardArray[target_X][yUp] > 0 && getShowStatusById(boardArray[target_X][yUp])) {
+                if (!isIdthesameKind(srcId, boardArray[target_X][yUp])) {
+                    chessIsShowedArray.add(boardArray[target_X][yUp])
+                }
+            }
+        }
+
+        Log.d(mTAG, "possible neighbor enemy list = $chessIsShowedArray")
+        Log.e(mTAG, "=== findTargetNeighbor end ===")
+
+        return chessIsShowedArray
+    }
+
+    fun isTargetPossibleBeBeaten(id: Int, target_X: Int, target_Y: Int) {
+
     }
 }
