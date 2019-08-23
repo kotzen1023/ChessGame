@@ -108,10 +108,10 @@ class FragmentGamePad : Fragment() {
                     //detect user click
 
                     if (board!!.getMove() % 2 == 0) { //robot1's turn
-                        robot1!!.showChess(chess.id, board!!.getMove())
+                        robot1!!.showChess(chess.id, board as Board)
                         robot1!!.showAliveList()
                     } else {
-                        robot2!!.showChess(chess.id, board!!.getMove())
+                        robot2!!.showChess(chess.id, board as Board)
                         robot2!!.showAliveList()
                     }
 
@@ -188,7 +188,7 @@ class FragmentGamePad : Fragment() {
                                     }
                                     Log.e(mTAG, "This chess id is ${chess.id}, it's ${board!!.getNameFromId(chess.id)}")
 
-                                    robot1!!.showChess(chess.id, board!!.getMove())
+                                    robot1!!.showChess(chess.id, board as Board)
                                     robot1!!.showAliveList()
 
                                     /*if (board!!.getMove() % 2 == 0) { //robot1's turn
@@ -223,7 +223,7 @@ class FragmentGamePad : Fragment() {
                                     }
                                     Log.e(mTAG, "This chess id is ${chess.id}, it's ${board!!.getNameFromId(chess.id)}")
 
-                                    robot2!!.showChess(chess.id, board!!.getMove())
+                                    robot2!!.showChess(chess.id, board as Board)
                                     robot2!!.showAliveList()
 
                                     /*if (board!!.getMove() % 2 == 0) { //robot1's turn
@@ -254,15 +254,15 @@ class FragmentGamePad : Fragment() {
                         val id = intent.getIntExtra("ID", 0)
                         if (id < 17) { //red
                             if (!robot1!!.chooseKind) {
-                                robot1!!.addChessToAliveList(id)
+                                robot1!!.addChessToAliveList(id, board as Board)
                             } else {
-                                robot2!!.addChessToAliveList(id)
+                                robot2!!.addChessToAliveList(id, board as Board)
                             }
                         } else { //black
                             if (!robot1!!.chooseKind) { //red
-                                robot2!!.addChessToAliveList(id)
+                                robot2!!.addChessToAliveList(id, board as Board)
                             } else {
-                                robot1!!.addChessToAliveList(id)
+                                robot1!!.addChessToAliveList(id, board as Board)
                             }
                         }
                         robot1!!.showAliveList()

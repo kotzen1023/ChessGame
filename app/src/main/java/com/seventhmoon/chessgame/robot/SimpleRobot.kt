@@ -57,10 +57,10 @@ class SimpleRobot(name: String, context: Context) {
 
     }
 
-    fun showChess(id: Int, move: Int) {
-        Log.e(mTAG, "=== $robotName showChess start: id = $id, move = $move")
+    fun showChess(id: Int, board: Board) {
+        Log.e(mTAG, "=== $robotName showChess start: id = $id, move = ${board.getMove()}")
 
-        if (move == 0) { //first move
+        if (board.getMove() == 0) { //first move
             if (id > 16) {
                 chooseKind = true
             } else {
@@ -69,11 +69,11 @@ class SimpleRobot(name: String, context: Context) {
                 mContext!!.sendBroadcast(setIntent)
             }
             Log.d(mTAG, "add $id to aliveAndIsShowedList")
-            addChessToAliveList(id)
+            addChessToAliveList(id, board)
         } else { // not first move
             val kind = (id > 16)
             if (chooseKind == kind) {
-                addChessToAliveList(id)
+                addChessToAliveList(id, board)
             } else {
                 val saveIntent = Intent()
                 saveIntent.action = Constants.ACTION.ACTION_SAVE_ID_TO_ANOTHER_ROBOT_ALIVE_LIST_ACTION
@@ -101,7 +101,7 @@ class SimpleRobot(name: String, context: Context) {
                 if (chess.kind == chooseKind) {
                     //add this chess to aliveAndIsShowedList
                     Log.d(mTAG, "Add ${chess.id} to $robotName's aliveAndIsShowedList, it's ${board.getNameFromId(chess.id)}")
-                    addChessToAliveList(chess.id)
+                    addChessToAliveList(chess.id, board)
                 } else { //send broadcast to save to another robot aliveAndIsShowedList
                     val saveIntent = Intent()
                     saveIntent.action = Constants.ACTION.ACTION_SAVE_ID_TO_ANOTHER_ROBOT_ALIVE_LIST_ACTION
@@ -151,21 +151,30 @@ class SimpleRobot(name: String, context: Context) {
 
     fun showAliveList() {
         Log.e(mTAG, "=== $robotName showAliveList start ===")
-        aliveAndIsShowedList.sort()
+
         Log.d(mTAG, "aliveAndIsShowedList = $aliveAndIsShowedList")
         Log.e(mTAG, "=== $robotName showAliveList end ===")
     }
 
     fun showEnemyList() {
         Log.e(mTAG, "=== $robotName showEnemyList start ===")
-        enemyAliveShowedList.sort()
+
         Log.d(mTAG, "enemyAliveShowedList = $enemyAliveShowedList")
         Log.e(mTAG, "=== $robotName showEnemyList end ===")
     }
 
-    fun addChessToAliveList(id: Int): Int {
+    fun addChessToAliveList(id: Int, board: Board): Int {
         Log.d(mTAG, "=== $robotName add $id to addChessToAliveList start ===")
         aliveAndIsShowedList.add(id)
+        aliveAndIsShowedList.sort()
+
+        //add to board
+        if (robotName == "Robot1") {
+            board.addIdToRobot1ShowedListOnBoard(id)
+        } else {
+            board.addIdToRobot2ShowedListOnBoard(id)
+        }
+
         Log.d(mTAG, "aliveAndIsShowedList.size = ${aliveAndIsShowedList.size}")
         Log.d(mTAG, "=== $robotName add $id to addChessToAliveList end ===")
 
@@ -179,7 +188,7 @@ class SimpleRobot(name: String, context: Context) {
         return aliveAndIsShowedList.size
     }
 
-    fun removeChessToAliveList(id: Int): Int {
+    fun removeChessToAliveList(id: Int, board: Board): Int {
         Log.d(mTAG, "=== $robotName remove $id removeChessToAliveList start ===")
         var index: Int = -1
         for(i in 0 until aliveAndIsShowedList.size) {
@@ -193,6 +202,13 @@ class SimpleRobot(name: String, context: Context) {
         }
         Log.d(mTAG, "aliveAndIsShowedList.size = ${aliveAndIsShowedList.size}")
 
+        //remove from board
+        if (robotName == "Robot1") {
+            board.removeIdFromRobot1ShowedListOnBoard(id)
+        } else {
+            board.removeIdFromRobot2ShowedListOnBoard(id)
+        }
+
         Log.d(mTAG, "=== $robotName removeChessToAliveList end ===")
         return aliveAndIsShowedList.size
     }
@@ -200,7 +216,7 @@ class SimpleRobot(name: String, context: Context) {
     fun addChessToEnemyList(enemy_id: Int): Int {
         Log.d(mTAG, "=== $robotName add $enemy_id to addChessToEnemyList start ===")
         enemyAliveShowedList.add(enemy_id)
-
+        enemyAliveShowedList.sort()
         Log.d(mTAG, "=== $robotName addChessToEnemyList end ===")
         return enemyAliveShowedList.size
     }
@@ -239,7 +255,9 @@ class SimpleRobot(name: String, context: Context) {
                             if (ret) {
                                 Log.d(mTAG, "${board.getNameFromId(enemyList[j])}{${board.getCoordinateX(enemyList[j])}, ${board.getCoordinateY(enemyList[j])}} is the target of (cannon) ${board.getNameFromId(chess.id)}")
 
-                                board.findTargetNeighbor(chess.id, board.getCoordinateX(enemyList[j]), board.getCoordinateY(enemyList[j]))
+                                val possibleNeighborEnemy: ArrayList<Int> = board.findTargetNeighbor(chess.id, enemyList[j],board.getCoordinateX(enemyList[j]), board.getCoordinateY(enemyList[j]))
+
+                                val possibleCannonEnemy: ArrayList<Int> = board.findTargetIsCannonTarget(chess.id, enemyList[j], board.getCoordinateX(enemyList[j]), board.getCoordinateY(enemyList[j]))
                             }
                         }
                     }
@@ -248,6 +266,10 @@ class SimpleRobot(name: String, context: Context) {
                             val ret = chess.isCanBeatTarget(chess.id, board.getCoordinateX(enemyList[j]), board.getCoordinateY(enemyList[j]), enemyList[j])
                             if (ret) {
                                 Log.d(mTAG, "${board.getNameFromId(enemyList[j])}{${board.getCoordinateX(enemyList[j])}, ${board.getCoordinateY(enemyList[j])}} is the target of ${board.getNameFromId(chess.id)}")
+
+                                val possibleNeighborEnemy: ArrayList<Int> = board.findTargetNeighbor(chess.id, enemyList[j],board.getCoordinateX(enemyList[j]), board.getCoordinateY(enemyList[j]))
+
+                                val possibleCannonEnemy: ArrayList<Int> = board.findTargetIsCannonTarget(chess.id, enemyList[j], board.getCoordinateX(enemyList[j]), board.getCoordinateY(enemyList[j]))
                             }
                         }
                     }

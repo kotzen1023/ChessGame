@@ -53,6 +53,9 @@ class Board(rows: Int, columns: Int, mContext: Context) {
     private var soldierBlack4: Soldier = Soldier()
     private var soldierBlack5: Soldier = Soldier()
 
+    val robot1ShowedList: ArrayList<Int> = ArrayList()
+    val robot2ShowedList: ArrayList<Int> = ArrayList()
+
     init {
         this.rows = rows
         this.columns = columns
@@ -930,7 +933,57 @@ class Board(rows: Int, columns: Int, mContext: Context) {
         }
     }
 
-    fun findTargetNeighbor(srcId: Int, target_X: Int, target_Y: Int): ArrayList<Int> {
+    fun addIdToRobot1ShowedListOnBoard(chess_id: Int) {
+        Log.e(mTAG, "=== addIdTo Robot1 ShowedListOnBoard add ${getNameFromId(chess_id)}{${getCoordinateX(chess_id)}, ${getCoordinateY(chess_id)}} ===")
+        Log.d(mTAG, "Before: $robot1ShowedList")
+        robot1ShowedList.add(chess_id)
+        robot1ShowedList.sort()
+        Log.d(mTAG, "After : $robot1ShowedList")
+        Log.e(mTAG, "=== addIdTo Robot1 ShowedListOnBoard end ===")
+    }
+
+    fun removeIdFromRobot1ShowedListOnBoard(chess_id: Int) {
+        Log.e(mTAG, "=== removeIdFrom Robot1 ShowedListOnBoard remove ${getNameFromId(chess_id)}{${getCoordinateX(chess_id)}, ${getCoordinateY(chess_id)}} ===")
+        Log.d(mTAG, "Before: $robot1ShowedList")
+        var index: Int = -1
+        for(i in 0 until robot1ShowedList.size) {
+            if (chess_id == robot1ShowedList[i]) {
+                index = i
+            }
+        }
+
+        if (index > -1)
+            robot1ShowedList.removeAt(index)
+        Log.d(mTAG, "After : $robot1ShowedList")
+        Log.e(mTAG, "=== removeIdFrom Robot1 ShowedListOnBoard end ===")
+    }
+
+    fun addIdToRobot2ShowedListOnBoard(chess_id: Int) {
+        Log.e(mTAG, "=== addIdTo Robot2 ShowedListOnBoard add ${getNameFromId(chess_id)}{${getCoordinateX(chess_id)}, ${getCoordinateY(chess_id)}} ===")
+        Log.d(mTAG, "Before: $robot2ShowedList")
+        robot2ShowedList.add(chess_id)
+        robot2ShowedList.sort()
+        Log.d(mTAG, "After : $robot2ShowedList")
+        Log.e(mTAG, "=== addIdTo Robot2 ShowedListOnBoard end ===")
+    }
+
+    fun removeIdFromRobot2ShowedListOnBoard(chess_id: Int) {
+        Log.e(mTAG, "=== removeIdFrom Robot2 ShowedListOnBoard remove ${getNameFromId(chess_id)}{${getCoordinateX(chess_id)}, ${getCoordinateY(chess_id)}} ===")
+        Log.d(mTAG, "Before: $robot2ShowedList")
+        var index: Int = -1
+        for(i in 0 until robot2ShowedList.size) {
+            if (chess_id == robot2ShowedList[i]) {
+                index = i
+            }
+        }
+
+        if (index > -1)
+            robot2ShowedList.removeAt(index)
+        Log.d(mTAG, "After : $robot2ShowedList")
+        Log.e(mTAG, "=== removeIdFrom Robot2 ShowedListOnBoard end ===")
+    }
+
+    fun findTargetNeighbor(srcId: Int, target_id: Int, target_X: Int, target_Y: Int): ArrayList<Int> {
         Log.e(mTAG, "=== findTargetNeighbor start srcId = $srcId, target_X = $target_X, target_Y = $target_Y  ===")
         val chessIsShowedArray: ArrayList<Int> = ArrayList()
 
@@ -971,13 +1024,174 @@ class Board(rows: Int, columns: Int, mContext: Context) {
             }
         }
 
-        Log.d(mTAG, "possible neighbor enemy list = $chessIsShowedArray")
+        if (chessIsShowedArray.size > 0) {
+            Log.d(mTAG, "${getNameFromId(srcId)}{${getCoordinateX(srcId)}, ${getCoordinateY(srcId)}}'s possible neighbor enemy list if beat ${getNameFromId(target_id)}{$target_X , $target_Y}: ")
+            for (i in 0 until chessIsShowedArray.size) {
+                print(getNameFromId(chessIsShowedArray[i]))
+                print("{")
+                print(getCoordinateX(chessIsShowedArray[i]))
+                print(", ")
+                print(getCoordinateY(chessIsShowedArray[i]))
+                print("}")
+                println()
+            }
+            Log.d(mTAG, "==============================")
+        }
+
+
         Log.e(mTAG, "=== findTargetNeighbor end ===")
 
         return chessIsShowedArray
     }
 
-    fun isTargetPossibleBeBeaten(id: Int, target_X: Int, target_Y: Int) {
+    fun findTargetIsCannonTarget(srcId: Int, target_id: Int, target_X: Int, target_Y: Int): ArrayList<Int> {
+        Log.e(mTAG, "=== findTargetIsCannonTarget start srcId = $srcId, target_X = $target_X, target_Y = $target_Y  ===")
+        val chessIsShowedArray: ArrayList<Int> = ArrayList()
 
+        var found = false
+        for (i in 0 until robot1ShowedList.size) {
+            if (srcId == robot1ShowedList[i]) {
+                found = true
+                break
+            }
+        }
+
+        Log.e(mTAG, "found = $found")
+
+        if (found) { //use robot2ShowedList
+            for (i in 0 until robot2ShowedList.size) {
+                when(robot2ShowedList[i]) {
+                    10,11,26,27 -> {
+                        val enemyX = getCoordinateX(robot2ShowedList[i])
+                        val enemyY = getCoordinateY(robot2ShowedList[i])
+
+                        Log.d(mTAG, "enemy (cannon) {$enemyX, $enemyY}")
+
+                        if (target_X == enemyX || target_Y == enemyY) { //is on the same line
+                            var foundCount = 0
+                            if (target_X == enemyX) {
+
+                                if (target_Y > enemyY) {
+                                    for(j in enemyY+1 until target_Y) {
+
+                                        if (isAnyChessOnCoordinate(target_X, j))
+                                            foundCount++
+                                    }
+                                } else {
+                                    for(j in target_Y+1 until enemyY) {
+
+                                        if (isAnyChessOnCoordinate(target_X, j))
+                                            foundCount++
+                                    }
+                                }
+
+                                if (foundCount == 1) {
+                                    Log.d(mTAG, "${getNameFromId(robot2ShowedList[i])}{${getCoordinateX(robot2ShowedList[i])}, ${getCoordinateY(robot2ShowedList[i])}} is a cannon aim at target {$target_X, $target_Y}")
+                                    chessIsShowedArray.add(robot2ShowedList[i])
+                                }
+
+                            } else { //targetY == enemyY
+                                if (target_X > enemyX) {
+                                    for(j in enemyX+1 until target_X) {
+
+                                        if (isAnyChessOnCoordinate(j, target_Y))
+                                            foundCount++
+                                    }
+                                } else {
+                                    for(j in target_X+1 until enemyX) {
+
+                                        if (isAnyChessOnCoordinate(j, target_Y))
+                                            foundCount++
+                                    }
+                                }
+
+                                if (foundCount == 1) {
+                                    Log.d(mTAG, "${getNameFromId(robot2ShowedList[i])}{${getCoordinateX(robot2ShowedList[i])}, ${getCoordinateY(robot2ShowedList[i])}} is a cannon aim at target {$target_X, $target_Y}")
+                                    chessIsShowedArray.add(robot2ShowedList[i])
+                                }
+                            }
+                        } else {
+                            Log.e(mTAG, "possible enemy ${getNameFromId(robot2ShowedList[i])}{${getCoordinateX(robot2ShowedList[i])}, ${getCoordinateY(robot2ShowedList[i])}} is not aim the target{$target_X, $target_Y}")
+                        }
+                    }
+                }
+            }
+        } else { //use robot1ShowedList
+            for (i in 0 until robot1ShowedList.size) {
+                when(robot1ShowedList[i]) {
+                    10,11,26,27 -> {
+                        val enemyX = getCoordinateX(robot1ShowedList[i])
+                        val enemyY = getCoordinateY(robot1ShowedList[i])
+
+                        Log.d(mTAG, "enemy (cannon) {$enemyX, $enemyY}")
+
+                        if (target_X == enemyX || target_Y == enemyY) { //is on the same line
+                            var foundCount = 0
+                            if (target_X == enemyX) {
+
+                                if (target_Y > enemyY) {
+                                    for(j in enemyY+1 until target_Y) {
+
+                                        if (isAnyChessOnCoordinate(target_X, j))
+                                            foundCount++
+                                    }
+                                } else {
+                                    for(j in target_Y+1 until enemyY) {
+
+                                        if (isAnyChessOnCoordinate(target_X, j))
+                                            foundCount++
+                                    }
+                                }
+
+                                if (foundCount == 1) {
+                                    Log.d(mTAG, "${getNameFromId(robot1ShowedList[i])}{${getCoordinateX(robot1ShowedList[i])}, ${getCoordinateY(robot1ShowedList[i])}} is a cannon aim at target {$target_X, $target_Y}")
+                                    chessIsShowedArray.add(robot1ShowedList[i])
+                                }
+
+                            } else { //targetY == enemyY
+                                if (target_X > enemyX) {
+                                    for(j in enemyX+1 until target_X) {
+
+                                        if (isAnyChessOnCoordinate(j, target_Y))
+                                            foundCount++
+                                    }
+                                } else {
+                                    for(j in target_X+1 until enemyX) {
+
+                                        if (isAnyChessOnCoordinate(j, target_Y))
+                                            foundCount++
+                                    }
+                                }
+
+                                if (foundCount == 1) {
+                                    Log.d(mTAG, "${getNameFromId(robot1ShowedList[i])}{${getCoordinateX(robot1ShowedList[i])}, ${getCoordinateY(robot1ShowedList[i])}} is a cannon aim at target {$target_X, $target_Y}")
+                                    chessIsShowedArray.add(robot1ShowedList[i])
+                                }
+                            }
+                        } else {
+                            Log.e(mTAG, "possible enemy ${getNameFromId(robot1ShowedList[i])}{${getCoordinateX(robot1ShowedList[i])}, ${getCoordinateY(robot1ShowedList[i])}} is not aim the target{$target_X, $target_Y}")
+                        }
+                    }
+                }
+            }
+        }
+
+        if (chessIsShowedArray.size > 0) {
+            Log.d(mTAG, "${getNameFromId(srcId)}{${getCoordinateX(srcId)}, ${getCoordinateY(srcId)}}'s possible cannon enemy list if beat ${getNameFromId(target_id)}{$target_X , $target_Y}: ")
+            for (i in 0 until chessIsShowedArray.size) {
+                print(getNameFromId(chessIsShowedArray[i]))
+                print("{")
+                print(getCoordinateX(chessIsShowedArray[i]))
+                print(", ")
+                print(getCoordinateY(chessIsShowedArray[i]))
+                print("}")
+                println()
+            }
+            Log.d(mTAG, "==============================")
+        }
+
+        Log.e(mTAG, "=== findTargetIsCannonTarget end")
+
+        return chessIsShowedArray
     }
 }
