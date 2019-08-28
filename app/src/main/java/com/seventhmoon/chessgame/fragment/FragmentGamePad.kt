@@ -202,6 +202,15 @@ class FragmentGamePad : Fragment() {
                                 2 -> {
                                     Log.e(mTAG, "robot1 look for alive list")
                                     robot1!!.checkAliveListNeighbor(board as Board)
+                                    robot1!!.showPossibleBeatList(board as Board)
+                                    robot1!!.showPossibleLostList(board as Board)
+                                    robot1!!.showPossibleTakeDownList(board as Board)
+                                    robot1!!.showPossibleLoseAfterTakeDownList(board as Board)
+                                    //act if beat level is higher than lost
+                                    val ret = robot1!!.isBeatLevelHigherThanLostLevel(board as Board)
+                                    if (ret) { //take down first of enemy
+                                        Log.e(mTAG, "Take down ")
+                                    }
                                 }
                             }
                         } else {
@@ -237,6 +246,15 @@ class FragmentGamePad : Fragment() {
                                 2 -> {
                                     Log.e(mTAG, "robot2 look for alive list")
                                     robot2!!.checkAliveListNeighbor(board as Board)
+                                    robot2!!.showPossibleBeatList(board as Board)
+                                    robot2!!.showPossibleLostList(board as Board)
+                                    robot2!!.showPossibleTakeDownList(board as Board)
+                                    robot2!!.showPossibleLoseAfterTakeDownList(board as Board)
+                                    //act if beat level is higher than lost
+                                    val ret = robot1!!.isBeatLevelHigherThanLostLevel(board as Board)
+                                    if (ret) { //take down first of enemy
+                                        Log.e(mTAG, "Take down ")
+                                    }
                                 }
                             }
                         }

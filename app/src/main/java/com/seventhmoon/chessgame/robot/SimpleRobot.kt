@@ -4,9 +4,11 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import com.seventhmoon.chessgame.data.Board
+import com.seventhmoon.chessgame.data.Chess
 import com.seventhmoon.chessgame.data.Constants
 import java.util.*
 import kotlin.collections.ArrayList
+import kotlin.collections.HashMap
 
 class SimpleRobot(name: String, context: Context) {
     private val mTAG = SimpleRobot::class.java.name
@@ -16,6 +18,13 @@ class SimpleRobot(name: String, context: Context) {
     private val aliveAndIsShowedList: ArrayList<Int> = ArrayList()
     private val enemyAliveShowedList: ArrayList<Int> = ArrayList()
     private val opponentCouldBeBeatList: ArrayList<Int> = ArrayList()
+
+    //for every move calculate
+    private val possibleCouldBeatList: ArrayList<Int> = ArrayList()
+    private val possibleCouldTakeDownList: HashMap<Int, ArrayList<Int>> = HashMap()
+    private val possibleCouldLostAfterBeat: HashMap<Int, ArrayList< HashMap<Int, ArrayList<Int>> > > = HashMap()
+    private val possibleCouldLostList: ArrayList<Int> = ArrayList()
+
     var state: CurrentState = CurrentState.STATE_NONE
     private var mContext: Context ?= null
 
@@ -239,39 +248,301 @@ class SimpleRobot(name: String, context: Context) {
         return enemyAliveShowedList.size
     }
 
+    fun addChessToPossibleBeatList(id: Int) {
+
+        var found = false
+        for (i in 0 until possibleCouldBeatList.size) {
+            if (id == possibleCouldBeatList[i]) {
+                found = true
+                break
+            }
+        }
+
+        if (!found) {
+            possibleCouldBeatList.add(id)
+            possibleCouldBeatList.sort()
+        }
+    }
+
+    fun showPossibleBeatList(board: Board) {
+        Log.e(mTAG, "=== $robotName showPossibleBeatList start ===")
+
+        Log.d(mTAG, "possibleCouldBeatList = $possibleCouldBeatList")
+
+        for (i in 0 until possibleCouldBeatList.size) {
+            print(board.getNameFromId(possibleCouldBeatList[i]))
+            print("{")
+            print(board.getCoordinateX(possibleCouldBeatList[i]))
+            print(", ")
+            print(board.getCoordinateY(possibleCouldBeatList[i]))
+            print("}")
+            println()
+        }
+
+        Log.e(mTAG, "=== $robotName showPossibleBeatList end ===")
+    }
+
+    fun showPossibleTakeDownList(board: Board) {
+        Log.e(mTAG, "=== $robotName showPossibleTakeDownList start ===")
+
+        print("possibleCouldBeatList = [")
+        //Log.d(mTAG, "possibleCouldBeatList = $possibleCouldBeatList")
+        for (i in 0 until possibleCouldBeatList.size) {
+            print(board.getNameFromId(possibleCouldBeatList[i]))
+            print("{")
+            print(board.getCoordinateX(possibleCouldBeatList[i]))
+            print(", ")
+            print(board.getCoordinateY(possibleCouldBeatList[i]))
+            print("}")
+            if ( i != possibleCouldBeatList.size - 1)
+                print(", ")
+        }
+        println("]")
+
+        for (key in possibleCouldTakeDownList.keys) {
+
+            val arrayList = possibleCouldTakeDownList[key]
+
+            if (arrayList!!.size > 0) {
+                print(board.getNameFromId(key))
+                print("{")
+                print(board.getCoordinateX(key))
+                print(", ")
+                print(board.getCoordinateY(key))
+                print("}")
+                print(" ==>")
+
+                for (i in 0 until arrayList!!.size) {
+                    print(" ")
+                    print(board.getNameFromId(arrayList[i]))
+                    print("{")
+                    print(board.getCoordinateX(arrayList[i]))
+                    print(", ")
+                    print(board.getCoordinateY(arrayList[i]))
+                    print("}")
+
+                }
+
+                println()
+            }
+
+
+        }
+
+
+
+        Log.e(mTAG, "=== $robotName showPossibleTakeDownList end ===")
+    }
+
+    fun showPossibleLoseAfterTakeDownList(board: Board) {
+        Log.e(mTAG, "=== $robotName showPossibleLoseAfterTakeDownList start ===")
+
+        print("possibleCouldLostAfterBeat = [")
+        //Log.d(mTAG, "possibleCouldBeatList = $possibleCouldBeatList")
+        for (i in 0 until possibleCouldBeatList.size) {
+            print(board.getNameFromId(possibleCouldBeatList[i]))
+            print("{")
+            print(board.getCoordinateX(possibleCouldBeatList[i]))
+            print(", ")
+            print(board.getCoordinateY(possibleCouldBeatList[i]))
+            print("}")
+            if ( i != possibleCouldBeatList.size - 1)
+                print(", ")
+        }
+        println("]")
+
+        for (key in possibleCouldLostAfterBeat.keys) {
+
+            val arrayList = possibleCouldLostAfterBeat[key]
+
+            if (arrayList!!.size > 0) {
+                print(board.getNameFromId(key))
+                print("{")
+                print(board.getCoordinateX(key))
+                print(", ")
+                print(board.getCoordinateY(key))
+                print("}")
+                println(" ==>")
+
+                for (i in 0 until arrayList.size) {
+                    for (L2Key in arrayList[i].keys) {
+                        print("   ")
+                        print(board.getNameFromId(L2Key))
+                        print("{")
+                        print(board.getCoordinateX(L2Key))
+                        print(", ")
+                        print(board.getCoordinateY(L2Key))
+                        print("}")
+                        println(" <==")
+                    }
+
+                }
+
+                println()
+            }
+
+
+        }
+
+        Log.e(mTAG, "=== $robotName showPossibleLoseAfterTakeDownList end ===")
+    }
+
+    fun addChessToPossibleLostList(id: Int) {
+
+        var found = false
+        for (i in 0 until possibleCouldLostList.size) {
+            if (id == possibleCouldLostList[i]) {
+                found = true
+                break
+            }
+        }
+
+        if (!found) {
+            possibleCouldLostList.add(id)
+            possibleCouldLostList.sort()
+        }
+    }
+
+    fun showPossibleLostList(board: Board) {
+        Log.e(mTAG, "=== $robotName showPossibleLostList start ===")
+
+        Log.d(mTAG, "possibleCouldLostList = $possibleCouldLostList")
+
+        for (i in 0 until possibleCouldLostList.size) {
+            print(board.getNameFromId(possibleCouldLostList[i]))
+            print("{")
+            print(board.getCoordinateX(possibleCouldLostList[i]))
+            print(", ")
+            print(board.getCoordinateY(possibleCouldLostList[i]))
+            print("}")
+            println()
+        }
+
+        Log.e(mTAG, "=== $robotName showPossibleLostList end ===")
+    }
+
+    fun isBeatLevelHigherThanLostLevel(board: Board): Boolean {
+        Log.e(mTAG, "=== $robotName isBeatLevelHigherThanLostLevel start ===")
+
+        var ret = false
+
+        var getBeatFirst = 0
+        var getLostFirst = 0
+
+        Log.d(mTAG, "possibleCouldBeatList.size = ${possibleCouldBeatList.size})")
+
+        if (possibleCouldBeatList.size > 0) {
+            getBeatFirst = possibleCouldBeatList[0]
+
+            if (possibleCouldLostList.size > 0) {
+                getLostFirst = possibleCouldLostList[0]
+
+                val chessBeat = board.getChessFromId(getBeatFirst)
+                val chessLost = board.getChessFromId(getLostFirst)
+
+                Log.d(mTAG, "chessBeat is ${board.getNameFromId(getBeatFirst)}, chessLost is ${board.getNameFromId(getLostFirst)}")
+
+                ret = (chessBeat.level >= chessLost.level)
+            } else {
+                ret = true
+            }
+
+        } else {
+            Log.e(mTAG, "Should move or show a new one.")
+        }
+
+        Log.e(mTAG, "=== $robotName isBeatLevelHigherThanLostLevel end ===")
+
+        return ret
+    }
+
     fun checkAliveListNeighbor(board: Board) {
         Log.e(mTAG, "=== checkAliveListNeighbor start ===")
+
+        possibleCouldBeatList.clear()
+        possibleCouldTakeDownList.clear()
+        possibleCouldLostAfterBeat.clear()
+        possibleCouldLostList.clear()
+
         if (aliveAndIsShowedList.size > 0) {
             for (i in 0 until  aliveAndIsShowedList.size) {
                 val chess = board.getChessFromId(aliveAndIsShowedList[i])
                 Log.d(mTAG, "chess.id = ${chess.id} name = ${board.getNameFromId(chess.id)} {${chess.coordinateX}, ${chess.coordinateY}}")
                 val enemyList = board.findEnemyIsShowed(chess.id)
+                enemyList.sort()
                 Log.e(mTAG, "showed enemy = $enemyList")
 
                 when(chess.id) {
                     10,11,26,27 -> { //cannon type
+                        val canTakeDownList: ArrayList<Int> = ArrayList()
+
                         for (j in 0 until enemyList.size) {
                             val ret = chess.isCannonTarget(board.getCoordinateX(enemyList[j]), board.getCoordinateY(enemyList[j]), enemyList[j], board)
                             if (ret) {
                                 Log.d(mTAG, "${board.getNameFromId(enemyList[j])}{${board.getCoordinateX(enemyList[j])}, ${board.getCoordinateY(enemyList[j])}} is the target of (cannon) ${board.getNameFromId(chess.id)}")
 
+                                //add to possible beat list
+                                addChessToPossibleBeatList(enemyList[j])
+                                canTakeDownList.add(enemyList[j])
+
                                 val possibleNeighborEnemy: ArrayList<Int> = board.findTargetNeighbor(chess.id, enemyList[j],board.getCoordinateX(enemyList[j]), board.getCoordinateY(enemyList[j]))
 
+                                if (possibleNeighborEnemy.size > 0) {
+                                    addChessToPossibleLostList(chess.id)
+                                }
+
                                 val possibleCannonEnemy: ArrayList<Int> = board.findTargetIsCannonTarget(chess.id, enemyList[j], board.getCoordinateX(enemyList[j]), board.getCoordinateY(enemyList[j]))
+
+                                if (possibleCannonEnemy.size > 0) {
+                                    addChessToPossibleLostList(chess.id)
+                                }
                             }
                         }
+
+                        possibleCouldTakeDownList[chess.id] = canTakeDownList
                     }
                     else -> { //not cannon
+
+                        val canTakeDownList: ArrayList<Int> = ArrayList()
+                        val takeDownCouldBeLostHashMapList: ArrayList<HashMap<Int, ArrayList<Int>>> = ArrayList()
+
                         for (j in 0 until enemyList.size) {
                             val ret = chess.isCanBeatTarget(chess.id, board.getCoordinateX(enemyList[j]), board.getCoordinateY(enemyList[j]), enemyList[j])
                             if (ret) {
+                                val takeDownCouldBeLostHashMap: HashMap<Int, ArrayList<Int>> = HashMap()
+
                                 Log.d(mTAG, "${board.getNameFromId(enemyList[j])}{${board.getCoordinateX(enemyList[j])}, ${board.getCoordinateY(enemyList[j])}} is the target of ${board.getNameFromId(chess.id)}")
 
+                                ///add to possible beat list
+                                addChessToPossibleBeatList(enemyList[j])
+                                canTakeDownList.add(enemyList[j])
+
+
                                 val possibleNeighborEnemy: ArrayList<Int> = board.findTargetNeighbor(chess.id, enemyList[j],board.getCoordinateX(enemyList[j]), board.getCoordinateY(enemyList[j]))
+                                //private val possibleCouldLostAfterBeat: HashMap<Int, ArrayList< HashMap<Int, ArrayList<Int>> > > = HashMap()
+
+                                if (possibleNeighborEnemy.size > 0) {
+                                    addChessToPossibleLostList(chess.id)
+
+                                    for (k in 0 until canTakeDownList.size) {
+                                        takeDownCouldBeLostHashMap[canTakeDownList[k]] = possibleNeighborEnemy
+                                    }
+                                    takeDownCouldBeLostHashMapList.add(takeDownCouldBeLostHashMap)
+                                }
 
                                 val possibleCannonEnemy: ArrayList<Int> = board.findTargetIsCannonTarget(chess.id, enemyList[j], board.getCoordinateX(enemyList[j]), board.getCoordinateY(enemyList[j]))
+
+                                if (possibleCannonEnemy.size > 0) {
+                                    addChessToPossibleLostList(chess.id)
+                                }
                             }
                         }
+
+                        //
+                        //possibleCouldTakeDownList.put(chess.id, canTakeDownList)
+                        possibleCouldTakeDownList[chess.id] = canTakeDownList
+                        possibleCouldLostAfterBeat[chess.id] = takeDownCouldBeLostHashMapList
+
                     }
                 }
 

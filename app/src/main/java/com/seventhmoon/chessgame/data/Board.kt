@@ -933,6 +933,8 @@ class Board(rows: Int, columns: Int, mContext: Context) {
         }
     }
 
+
+
     fun addIdToRobot1ShowedListOnBoard(chess_id: Int) {
         Log.e(mTAG, "=== addIdTo Robot1 ShowedListOnBoard add ${getNameFromId(chess_id)}{${getCoordinateX(chess_id)}, ${getCoordinateY(chess_id)}} ===")
         Log.d(mTAG, "Before: $robot1ShowedList")
@@ -995,7 +997,12 @@ class Board(rows: Int, columns: Int, mContext: Context) {
         if (xDown in 0..7) {
             if (boardArray[xDown][target_Y] > 0 && getShowStatusById(boardArray[xDown][target_Y])) { //not space and is showed
                 if (!isIdthesameKind(srcId, boardArray[xDown][target_Y])) {
-                    chessIsShowedArray.add(boardArray[xDown][target_Y])
+                    val srcChess = getChessFromId(srcId)
+                    val destChess = getChessFromId(boardArray[xDown][target_Y])
+
+                    if (!chessCouldBeReplace(srcChess, destChess)) {
+                        chessIsShowedArray.add(boardArray[xDown][target_Y])
+                    }
                 }
             }
         }
@@ -1003,7 +1010,11 @@ class Board(rows: Int, columns: Int, mContext: Context) {
         if (xUp in 0..7) {
             if (boardArray[xUp][target_Y] > 0 && getShowStatusById(boardArray[xUp][target_Y])) {
                 if (!isIdthesameKind(srcId, boardArray[xUp][target_Y])) {
-                    chessIsShowedArray.add(boardArray[xUp][target_Y])
+                    val srcChess = getChessFromId(srcId)
+                    val destChess = getChessFromId(boardArray[xUp][target_Y])
+
+                    if (!chessCouldBeReplace(srcChess, destChess))
+                        chessIsShowedArray.add(boardArray[xUp][target_Y])
                 }
             }
         }
@@ -1011,7 +1022,11 @@ class Board(rows: Int, columns: Int, mContext: Context) {
         if (yDown in 0..3) {
             if (boardArray[target_X][yDown] > 0 && getShowStatusById(boardArray[target_X][yDown])) {
                 if (!isIdthesameKind(srcId, boardArray[target_X][yDown])) {
-                    chessIsShowedArray.add(boardArray[target_X][yDown])
+                    val srcChess = getChessFromId(srcId)
+                    val destChess = getChessFromId(boardArray[target_X][yDown])
+
+                    if (!chessCouldBeReplace(srcChess, destChess))
+                        chessIsShowedArray.add(boardArray[target_X][yDown])
                 }
             }
         }
@@ -1019,7 +1034,11 @@ class Board(rows: Int, columns: Int, mContext: Context) {
         if (yUp in 0..3) {
             if (boardArray[target_X][yUp] > 0 && getShowStatusById(boardArray[target_X][yUp])) {
                 if (!isIdthesameKind(srcId, boardArray[target_X][yUp])) {
-                    chessIsShowedArray.add(boardArray[target_X][yUp])
+                    val srcChess = getChessFromId(srcId)
+                    val destChess = getChessFromId(boardArray[target_X][yUp])
+
+                    if (!chessCouldBeReplace(srcChess, destChess))
+                        chessIsShowedArray.add(boardArray[target_X][yUp])
                 }
             }
         }
